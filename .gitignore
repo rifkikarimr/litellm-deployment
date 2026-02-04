@@ -1,0 +1,17 @@
+cat >> .gitignore <<'EOF'
+# secrets & env
+.env
+*.env
+.env.*
+*.key
+*.pem
+
+# local artifacts
+__pycache__/
+*.pyc
+.DS_Store
+
+# build output
+dist/
+build/
+EOF
