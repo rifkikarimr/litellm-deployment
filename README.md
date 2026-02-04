@@ -63,9 +63,3 @@ LiteLLM supports these CLI flags. :contentReference[oaicite:6]{index=6}
 
 - **Postgres data directory version mismatch**  
   If the data volume was initialized by a different major Postgres version, the container will fail. (Fix by matching major version or resetting volume for R&D.)
-
-## References
-- LiteLLM Proxy CLI (host/port): :contentReference[oaicite:9]{index=9}  
-- Cloud Run container contract (PORT): :contentReference[oaicite:10]{index=10}  
-- Direct VPC egress: :contentReference[oaicite:11]{index=11}  
-- Cloud Run secrets: :contentReference[oaicite:12]{index=12}
