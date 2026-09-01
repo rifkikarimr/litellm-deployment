@@ -1,0 +1,254 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - button "menu-fold" [ref=e8] [cursor=pointer]:
+            - img "menu-fold" [ref=e10]:
+              - img [ref=e11]
+          - generic [ref=e13]:
+            - link "LiteLLM Brand" [ref=e14] [cursor=pointer]:
+              - /url: https://litellm-rnd-890434106746.asia-southeast2.run.app
+              - img "LiteLLM Brand" [ref=e17]
+            - generic [ref=e18]:
+              - generic "Thanks for using LiteLLM!" [ref=e19]: 🌑
+              - link "v1.82.6" [ref=e21] [cursor=pointer]:
+                - /url: https://docs.litellm.ai/release_notes
+        - generic [ref=e22]:
+          - link "slack Join Slack" [ref=e23] [cursor=pointer]:
+            - /url: https://www.litellm.ai/support
+            - img "slack" [ref=e25]:
+              - img [ref=e26]
+            - generic [ref=e28]: Join Slack
+          - link "github Star us on GitHub" [ref=e29] [cursor=pointer]:
+            - /url: https://github.com/BerriAI/litellm
+            - img "github" [ref=e31]:
+              - img [ref=e32]
+            - generic [ref=e34]: Star us on GitHub
+          - link "Docs" [ref=e35] [cursor=pointer]:
+            - /url: https://docs.litellm.ai/docs/
+            - generic [ref=e36]: Docs
+          - button "Blog" [ref=e37] [cursor=pointer]:
+            - generic [ref=e38]: Blog
+          - button "user User down" [ref=e39] [cursor=pointer]:
+            - generic [ref=e40]:
+              - img "user" [ref=e42]:
+                - img [ref=e43]
+              - generic [ref=e45]: User
+              - img "down" [ref=e47]:
+                - img [ref=e48]
+    - generic [ref=e50]:
+      - complementary [ref=e53]:
+        - generic [ref=e54]:
+          - menu [ref=e55]:
+            - generic [ref=e56]: AI GATEWAY
+            - group [ref=e57]:
+              - menuitem "key Virtual Keys" [ref=e58] [cursor=pointer]:
+                - img "key" [ref=e59]:
+                  - img [ref=e60]
+                - link "Virtual Keys" [ref=e63]:
+                  - /url: "?login=success&page=api-keys"
+              - menuitem "play-circle Playground" [ref=e64] [cursor=pointer]:
+                - img "play-circle" [ref=e65]:
+                  - img [ref=e66]
+                - link "Playground" [ref=e70]:
+                  - /url: "?login=success&page=llm-playground"
+              - menuitem "block Models + Endpoints" [ref=e71] [cursor=pointer]:
+                - img "block" [ref=e72]:
+                  - img [ref=e73]
+                - link "Models + Endpoints" [ref=e76]:
+                  - /url: "?login=success&page=models"
+              - menuitem "robot Agents" [ref=e77] [cursor=pointer]:
+                - img "robot" [ref=e78]:
+                  - img [ref=e79]
+                - link "Agents" [ref=e82]:
+                  - /url: "?login=success&page=agents"
+              - menuitem "tool MCP Servers" [ref=e83] [cursor=pointer]:
+                - img "tool" [ref=e84]:
+                  - img [ref=e85]
+                - link "MCP Servers" [ref=e88]:
+                  - /url: "?login=success&page=mcp-servers"
+              - menuitem "safety Guardrails" [ref=e89] [cursor=pointer]:
+                - img "safety" [ref=e90]:
+                  - img [ref=e91]
+                - link "Guardrails" [ref=e95]:
+                  - /url: "?login=success&page=guardrails"
+              - menuitem "audit Policies" [ref=e96] [cursor=pointer]:
+                - img "audit" [ref=e97]:
+                  - img [ref=e98]
+                - link "Policies" [ref=e101]:
+                  - /url: "?login=success&page=policies"
+                  - generic [ref=e102]: Policies
+              - menuitem "tool Tools" [ref=e103] [cursor=pointer]:
+                - img "tool" [ref=e104]:
+                  - img [ref=e105]
+                - link "Tools" [ref=e108]:
+                  - /url: "?login=success&page=tools"
+            - generic [ref=e109]: OBSERVABILITY
+            - group [ref=e110]:
+              - menuitem "bar-chart Usage" [ref=e111] [cursor=pointer]:
+                - img "bar-chart" [ref=e112]:
+                  - img [ref=e113]
+                - link "Usage" [ref=e116]:
+                  - /url: "?login=success&page=new_usage"
+              - menuitem "line-chart Logs" [ref=e117] [cursor=pointer]:
+                - img "line-chart" [ref=e118]:
+                  - img [ref=e119]
+                - link "Logs" [ref=e122]:
+                  - /url: "?login=success&page=logs"
+              - menuitem "safety Guardrails Monitor" [ref=e123] [cursor=pointer]:
+                - img "safety" [ref=e124]:
+                  - img [ref=e125]
+                - link "Guardrails Monitor" [ref=e129]:
+                  - /url: "?login=success&page=guardrails-monitor"
+            - generic [ref=e130]: ACCESS CONTROL
+            - group [ref=e131]:
+              - menuitem "team Teams" [ref=e132] [cursor=pointer]:
+                - img "team" [ref=e133]:
+                  - img [ref=e134]
+                - link "Teams" [ref=e137]:
+                  - /url: "?login=success&page=teams"
+              - menuitem "user Internal Users" [ref=e138] [cursor=pointer]:
+                - img "user" [ref=e139]:
+                  - img [ref=e140]
+                - link "Internal Users" [ref=e143]:
+                  - /url: "?login=success&page=users"
+              - menuitem "bank Organizations" [ref=e144] [cursor=pointer]:
+                - img "bank" [ref=e145]:
+                  - img [ref=e146]
+                - link "Organizations" [ref=e149]:
+                  - /url: "?login=success&page=organizations"
+              - menuitem "block Access Groups" [ref=e150] [cursor=pointer]:
+                - img "block" [ref=e151]:
+                  - img [ref=e152]
+                - link "Access Groups" [ref=e155]:
+                  - /url: "?login=success&page=access-groups"
+              - menuitem "credit-card Budgets" [ref=e156] [cursor=pointer]:
+                - img "credit-card" [ref=e157]:
+                  - img [ref=e158]
+                - link "Budgets" [ref=e161]:
+                  - /url: "?login=success&page=budgets"
+            - generic [ref=e162]: DEVELOPER TOOLS
+            - group [ref=e163]:
+              - menuitem "api API Reference" [ref=e164] [cursor=pointer]:
+                - img "api" [ref=e165]:
+                  - img [ref=e166]
+                - link "API Reference" [ref=e169]:
+                  - /url: /ui/api-reference
+              - menuitem "appstore AI Hub" [ref=e170] [cursor=pointer]:
+                - img "appstore" [ref=e171]:
+                  - img [ref=e172]
+                - link "AI Hub" [ref=e175]:
+                  - /url: "?login=success&page=model-hub-table"
+              - menuitem "book Learning Resources export" [ref=e176] [cursor=pointer]:
+                - img "book" [ref=e177]:
+                  - img [ref=e178]
+                - link "Learning Resources export" [ref=e181]:
+                  - /url: https://models.litellm.ai/cookbook
+                  - text: Learning Resources
+                  - img "export" [ref=e182]:
+                    - img [ref=e183]
+              - menuitem "experiment Experimental" [ref=e185] [cursor=pointer]:
+                - img "experiment" [ref=e186]:
+                  - img [ref=e187]
+                - link "Experimental" [ref=e190]:
+                  - /url: "?login=success&page=experimental"
+            - generic [ref=e191]: SETTINGS
+            - group [ref=e192]:
+              - menuitem "setting Settings New" [ref=e193] [cursor=pointer]:
+                - img "setting" [ref=e194]:
+                  - img [ref=e195]
+                - link "Settings New" [ref=e198]:
+                  - /url: "?login=success&page=settings"
+                  - generic [ref=e199]:
+                    - text: Settings
+                    - superscript [ref=e201]: New
+          - generic [ref=e204]:
+            - img [ref=e205]
+            - generic [ref=e207]: Loading...
+      - generic [ref=e210]:
+        - button "+ Create New Key" [ref=e212] [cursor=pointer]:
+          - generic [ref=e213]: + Create New Key
+        - generic [ref=e215]:
+          - generic [ref=e218]:
+            - button "Filters" [ref=e219] [cursor=pointer]:
+              - img [ref=e221]
+              - generic [ref=e223]: Filters
+            - button "Reset Filters" [ref=e224] [cursor=pointer]:
+              - generic [ref=e225]: Reset Filters
+          - button "sync Fetching" [disabled] [ref=e230]:
+            - generic:
+              - img "sync":
+                - img
+            - generic: Fetching
+          - table [ref=e242]:
+            - rowgroup [ref=e243]:
+              - row "Key ID Key Alias Secret Key Team Organization User info-circle Created At Created By Updated At Last Active info-circle Expires Spend (USD) Budget (USD) Budget Reset Models Rate Limits" [ref=e244]:
+                - columnheader "Key ID" [ref=e245] [cursor=pointer]:
+                  - generic [ref=e246]:
+                    - generic [ref=e247]: Key ID
+                    - img [ref=e249]
+                - columnheader "Key Alias" [ref=e252] [cursor=pointer]:
+                  - generic [ref=e253]:
+                    - generic [ref=e254]: Key Alias
+                    - img [ref=e256]
+                - columnheader "Secret Key" [ref=e259]:
+                  - generic [ref=e261]: Secret Key
+                - columnheader "Team" [ref=e263]:
+                  - generic [ref=e265]: Team
+                - columnheader "Organization" [ref=e267]:
+                  - generic [ref=e269]: Organization
+                - columnheader "User info-circle" [ref=e271]:
+                  - generic [ref=e274]:
+                    - text: User
+                    - img "info-circle" [ref=e275]:
+                      - img [ref=e276]
+                - columnheader "Created At" [ref=e280] [cursor=pointer]:
+                  - generic [ref=e281]:
+                    - generic [ref=e282]: Created At
+                    - img [ref=e284]
+                - columnheader "Created By" [ref=e287]:
+                  - generic [ref=e289]: Created By
+                - columnheader "Updated At" [ref=e291] [cursor=pointer]:
+                  - generic [ref=e292]:
+                    - generic [ref=e293]: Updated At
+                    - img [ref=e295]
+                - columnheader "Last Active info-circle" [ref=e298]:
+                  - generic [ref=e301]:
+                    - text: Last Active
+                    - img "info-circle" [ref=e302]:
+                      - img [ref=e303]
+                - columnheader "Expires" [ref=e307]:
+                  - generic [ref=e309]: Expires
+                - columnheader "Spend (USD)" [ref=e311] [cursor=pointer]:
+                  - generic [ref=e312]:
+                    - generic [ref=e313]: Spend (USD)
+                    - img [ref=e315]
+                - columnheader "Budget (USD)" [ref=e318] [cursor=pointer]:
+                  - generic [ref=e319]:
+                    - generic [ref=e320]: Budget (USD)
+                    - img [ref=e322]
+                - columnheader "Budget Reset" [ref=e325]:
+                  - generic [ref=e327]: Budget Reset
+                - columnheader "Models" [ref=e329]:
+                  - generic [ref=e331]: Models
+                - columnheader "Rate Limits" [ref=e333]:
+                  - generic [ref=e335]: Rate Limits
+            - rowgroup [ref=e337]:
+              - row "🚅 Loading keys..." [ref=e338]:
+                - cell "🚅 Loading keys..." [ref=e339]:
+                  - paragraph [ref=e341]: 🚅 Loading keys...
+    - generic [ref=e345]:
+      - generic [ref=e346]:
+        - generic [ref=e347]:
+          - img [ref=e348]
+          - generic [ref=e350]: Quick feedback
+        - button [ref=e351] [cursor=pointer]:
+          - img [ref=e352]
+      - paragraph [ref=e355]: Help us improve LiteLLM! Share your experience in 5 quick questions.
+      - generic [ref=e356]:
+        - button "Share feedback" [ref=e357] [cursor=pointer]:
+          - generic [ref=e358]: Share feedback
+        - button "Don't ask me again" [ref=e359] [cursor=pointer]:
+          - generic [ref=e360]: Don't ask me again

@@ -1,0 +1,10 @@
+.gcloudignore
+.git
+.gitignore
+.env
+.env.*
+*.env
+.playwright-cli
+__pycache__
+*.pyc
+.DS_Store

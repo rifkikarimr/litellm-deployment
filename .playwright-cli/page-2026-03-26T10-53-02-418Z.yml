@@ -1,0 +1,40 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e6]:
+    - heading "🚅 LiteLLM" [level=2] [ref=e9]
+    - generic [ref=e11]:
+      - heading "Login" [level=3] [ref=e12]
+      - text: Access your LiteLLM Admin UI.
+    - alert [ref=e14]:
+      - img "info-circle" [ref=e15]:
+        - img [ref=e16]
+      - generic [ref=e19]:
+        - generic [ref=e20]: Default Credentials
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - text: By default, Username is
+            - code [ref=e23]: admin
+            - text: and Password is your set LiteLLM Proxy
+            - code [ref=e24]: MASTER_KEY
+            - text: .
+          - generic [ref=e25]:
+            - text: Need to set UI credentials or SSO?
+            - link "Check the documentation" [ref=e26] [cursor=pointer]:
+              - /url: https://docs.litellm.ai/docs/proxy/ui
+            - text: .
+    - generic [ref=e28]:
+      - generic [ref=e30]:
+        - generic "Username" [ref=e32]
+        - textbox "Username" [ref=e36]:
+          - /placeholder: Enter your username
+      - generic [ref=e38]:
+        - generic "Password" [ref=e40]
+        - generic [ref=e44]:
+          - textbox "Password" [ref=e45]:
+            - /placeholder: Enter your password
+          - img "eye-invisible" [ref=e47] [cursor=pointer]:
+            - img [ref=e48]
+      - button "Login" [ref=e56] [cursor=pointer]:
+        - generic [ref=e57]: Login
+      - button "Login with SSO" [disabled] [ref=e63]:
+        - generic: Login with SSO

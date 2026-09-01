@@ -1,0 +1,2 @@
+[    1119ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://litellm-rnd-890434106746.asia-southeast2.run.app/ui/login/favicon.ico:0
+[    1137ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://litellm-rnd-890434106746.asia-southeast2.run.app/favicon.ico?favicon.1d32c690.ico:0
