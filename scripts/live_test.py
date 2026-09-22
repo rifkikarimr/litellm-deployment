@@ -14,8 +14,14 @@ MODEL = os.getenv("LITELLM_MODEL", "general-chat")
 
 
 def main() -> int:
+    if os.getenv("RUN_PAID_PROVIDER_TESTS") != "1":
+        print("Set RUN_PAID_PROVIDER_TESTS=1 to confirm this paid provider test.", file=sys.stderr)
+        return 2
     if not API_KEY:
         print("Set LITELLM_API_KEY or LITELLM_MASTER_KEY.", file=sys.stderr)
+        return 2
+    if API_KEY == "replace-me":
+        print("Replace the placeholder LiteLLM key before running this test.", file=sys.stderr)
         return 2
 
     payload = {

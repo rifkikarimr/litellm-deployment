@@ -100,11 +100,12 @@ make docker-build
 The fallback unit test uses LiteLLM Router mock responses and makes no network request. Live tests are intentionally separate:
 
 ```bash
-make test-openai
-make test-gemini
+RUN_PAID_PROVIDER_TESTS=1 make test-openai
+RUN_PAID_PROVIDER_TESTS=1 make test-gemini
+RUN_PAID_PROVIDER_TESTS=1 make test-live-fallback
 ```
 
-Both commands read gateway credentials from environment variables. A controlled end-to-end fallback test is documented in [resilience.md](docs/resilience.md); do it only in a non-production environment.
+The explicit acknowledgement prevents credentials already present in the shell from triggering an accidental provider request. Direct and controlled Router-level checks are documented in [operations.md](docs/operations.md); the disposable end-to-end proxy procedure is documented in [resilience.md](docs/resilience.md). Run either only in a non-production environment.
 
 ## Observability
 

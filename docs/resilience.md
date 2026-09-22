@@ -40,6 +40,16 @@ The test instantiates LiteLLM Router, forces its documented mock fallback path, 
 
 ## Controlled proxy fallback proof
 
+For a smaller live Router-level proof, run the opt-in helper first:
+
+```bash
+RUN_PAID_PROVIDER_TESTS=1 make test-live-fallback
+```
+
+It sends the primary deployment to a loopback HTTP 500 stub, then makes one real
+Gemini request through the documented fallback chain. It does not call OpenAI.
+This proves Router fallback behavior but not the running proxy path.
+
 LiteLLM no longer honors proxy request mock flags in recent versions. For an end-to-end gateway demonstration, use a disposable non-production configuration:
 
 1. Copy `config.yaml` outside the tracked repository.

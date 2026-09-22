@@ -26,6 +26,27 @@ The local smoke test calls `/health/liveliness` without invoking a model. Before
 8. usage persists after a container restart;
 9. logs and optional traces identify the selected provider.
 
+## Opt-in live provider checks
+
+Live checks are never part of `make validate`. After loading real credentials into
+the local environment and starting the gateway, run each paid check explicitly:
+
+```bash
+RUN_PAID_PROVIDER_TESTS=1 make test-openai
+RUN_PAID_PROVIDER_TESTS=1 make test-gemini
+RUN_PAID_PROVIDER_TESTS=1 LITELLM_MODEL=general-chat python3 scripts/live_test.py
+RUN_PAID_PROVIDER_TESTS=1 make test-live-fallback
+```
+
+`test-live-fallback` does not call OpenAI. It injects a local HTTP 500 response for
+the OpenAI primary and makes one real Gemini request through LiteLLM's Router. It
+verifies that the primary was attempted before the fallback completed. This is a
+controlled Router-level proof; the normal `general-chat` check remains the
+end-to-end proxy-path proof.
+
+The explicit `RUN_PAID_PROVIDER_TESTS=1` acknowledgement is required even when
+credentials are already present in the environment.
+
 ## Cloud Run deployment pattern
 
 Build and publish the image using your chosen CI/CD system, then deploy it with:

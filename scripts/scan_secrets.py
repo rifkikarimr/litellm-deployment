@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fail on likely credentials, private keys, private IPs, or stale corporate IDs."""
 
+import argparse
 from pathlib import Path
 import re
 import subprocess
@@ -32,8 +33,17 @@ def tracked_files() -> list[Path]:
     return [ROOT / name for name in output.split("\0") if name]
 
 
-def main() -> int:
-    findings: list[str] = []
+def scan_text(text: str, display_path: str) -> set[str]:
+    findings: set[str] = set()
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        for label, pattern in PATTERNS.items():
+            if pattern.search(line):
+                findings.add(f"{display_path}:{line_number}: {label}")
+    return findings
+
+
+def scan_current_tree() -> set[str]:
+    findings: set[str] = set()
     for path in tracked_files():
         if path.resolve() == Path(__file__).resolve():
             continue
@@ -43,17 +53,61 @@ def main() -> int:
             text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
-        for line_number, line in enumerate(text.splitlines(), start=1):
-            for label, pattern in PATTERNS.items():
-                if pattern.search(line):
-                    findings.append(f"{path.relative_to(ROOT)}:{line_number}: {label}")
+        findings.update(scan_text(text, str(path.relative_to(ROOT))))
+    return findings
+
+
+def scan_history() -> set[str]:
+    """Scan each unique blob reachable from local refs without printing values."""
+    findings: set[str] = set()
+    seen_blobs: set[str] = set()
+    commits = subprocess.check_output(
+        ["git", "rev-list", "--all"], cwd=ROOT, text=True
+    ).splitlines()
+
+    for commit in commits:
+        entries = subprocess.check_output(
+            ["git", "ls-tree", "-r", "-z", commit], cwd=ROOT
+        ).split(b"\0")
+        for entry in entries:
+            if not entry:
+                continue
+            metadata, raw_path = entry.split(b"\t", maxsplit=1)
+            blob = metadata.split()[2].decode("ascii")
+            if blob in seen_blobs:
+                continue
+            seen_blobs.add(blob)
+            path = raw_path.decode("utf-8", errors="replace")
+            data = subprocess.check_output(
+                ["git", "cat-file", "blob", blob], cwd=ROOT
+            )
+            try:
+                text = data.decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+            findings.update(scan_text(text, f"history:{path}"))
+    return findings
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="scan every unique blob reachable from local Git refs",
+    )
+    args = parser.parse_args()
+
+    findings = scan_history() if args.history else scan_current_tree()
 
     if findings:
-        print("secret scan: FAIL", file=sys.stderr)
-        print("\n".join(findings), file=sys.stderr)
+        scope = "history" if args.history else "current tree"
+        print(f"secret scan ({scope}): FAIL", file=sys.stderr)
+        print("\n".join(sorted(findings)), file=sys.stderr)
         return 1
 
-    print("secret scan: PASS")
+    scope = "history" if args.history else "current tree"
+    print(f"secret scan ({scope}): PASS")
     return 0
 
 

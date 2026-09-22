@@ -3,9 +3,9 @@ SHELL := /bin/bash
 PYTHON ?= python3
 LITELLM_VERSION := $(shell cat .litellm-version)
 
-.PHONY: validate test test-fallback compile yaml-check scan-secrets compose-config docker-build up down logs test-openai test-gemini health
+.PHONY: validate test test-fallback compile yaml-check scan-secrets scan-history-secrets compose-config docker-build up down logs test-openai test-gemini test-live-fallback health
 
-validate: compile yaml-check test scan-secrets compose-config
+validate: compile yaml-check test scan-secrets scan-history-secrets compose-config
 
 compile:
 	$(PYTHON) -m compileall -q scripts tests
@@ -21,6 +21,9 @@ test-fallback:
 
 scan-secrets:
 	$(PYTHON) scripts/scan_secrets.py
+
+scan-history-secrets:
+	$(PYTHON) scripts/scan_secrets.py --history
 
 compose-config:
 	@test -f .env || cp .env.example .env
@@ -47,3 +50,6 @@ test-openai:
 
 test-gemini:
 	LITELLM_MODEL=gemini-direct $(PYTHON) scripts/live_test.py
+
+test-live-fallback:
+	$(PYTHON) scripts/live_fallback_test.py

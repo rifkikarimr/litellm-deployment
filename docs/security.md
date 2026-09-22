@@ -6,7 +6,8 @@
 - `.env.example` contains placeholders only.
 - `config.yaml` reads every credential from the environment.
 - `scripts/scan_secrets.py` rejects common API-key formats, private-key material, private IPv4 addresses, service-account fields, and the removed corporate identifier.
-- CI runs the same scan on every pull request.
+- `make validate` scans both the current tree and every unique blob reachable from local Git refs.
+- CI checks out full history and runs the same scans on every pull request.
 
 If a real secret was ever committed, deleting the current file is insufficient: rotate it and purge history according to the hosting provider's guidance.
 
