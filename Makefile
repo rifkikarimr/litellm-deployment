@@ -1,36 +1,49 @@
 SHELL := /bin/bash
 
+PYTHON ?= python3
 LITELLM_VERSION := $(shell cat .litellm-version)
-TOOLS_VENV := .venv-prisma-tools
-TOOLS_PYTHON := $(TOOLS_VENV)/bin/python
-TOOLS_PRISMA := $(TOOLS_VENV)/bin/prisma
 
-.PHONY: tools schema-sync prisma-validate prisma-db-push prisma-generate prisma-reconcile
+.PHONY: validate test test-fallback compile yaml-check scan-secrets compose-config docker-build up down logs test-openai test-gemini health
 
-$(TOOLS_PYTHON):
-	python3 -m venv $(TOOLS_VENV)
-	$(TOOLS_PYTHON) -m pip install --upgrade pip
-	$(TOOLS_PYTHON) -m pip install "litellm[proxy]==$(LITELLM_VERSION)" prisma
+validate: compile yaml-check test scan-secrets compose-config
 
-tools: $(TOOLS_PYTHON)
+compile:
+	$(PYTHON) -m compileall -q scripts tests
 
-schema-sync: $(TOOLS_PYTHON)
-	$(TOOLS_PYTHON) -c 'import shutil; from pathlib import Path; import litellm.proxy; src = Path(litellm.proxy.__file__).resolve().parent / "schema.prisma"; dst = Path("schema.prisma").resolve(); shutil.copy2(src, dst); print(f"Synced {src} -> {dst}")'
+yaml-check:
+	$(PYTHON) scripts/validate_config.py
 
-prisma-validate: $(TOOLS_PYTHON)
-	@DB_URL="$${DATABASE_URL:-$$(grep '^DATABASE_URL=' .env 2>/dev/null | cut -d= -f2-)}"; \
-	test -n "$$DB_URL" || { echo "DATABASE_URL is required (export it or add it to .env)."; exit 1; }; \
-	PATH="$(abspath $(TOOLS_VENV))/bin:$$PATH" DATABASE_URL="$$DB_URL" $(TOOLS_PRISMA) validate --schema=schema.prisma
+test:
+	LITELLM_LOCAL_MODEL_COST_MAP=True $(PYTHON) -m unittest discover -s tests -v
 
-prisma-db-push: $(TOOLS_PYTHON)
-	@DB_URL="$${DATABASE_URL:-$$(grep '^DATABASE_URL=' .env 2>/dev/null | cut -d= -f2-)}"; \
-	test -n "$$DB_URL" || { echo "DATABASE_URL is required (export it or add it to .env)."; exit 1; }; \
-	PATH="$(abspath $(TOOLS_VENV))/bin:$$PATH" DATABASE_URL="$$DB_URL" $(TOOLS_PRISMA) db push --schema=schema.prisma --skip-generate
+test-fallback:
+	LITELLM_LOCAL_MODEL_COST_MAP=True $(PYTHON) -m unittest tests.test_fallback -v
 
-prisma-generate: $(TOOLS_PYTHON)
-	@DB_URL="$${DATABASE_URL:-$$(grep '^DATABASE_URL=' .env 2>/dev/null | cut -d= -f2-)}"; \
-	test -n "$$DB_URL" || { echo "DATABASE_URL is required (export it or add it to .env)."; exit 1; }; \
-	PATH="$(abspath $(TOOLS_VENV))/bin:$$PATH" DATABASE_URL="$$DB_URL" $(TOOLS_PRISMA) generate --schema=schema.prisma
+scan-secrets:
+	$(PYTHON) scripts/scan_secrets.py
 
-prisma-reconcile: schema-sync prisma-validate prisma-db-push prisma-generate
-	@echo "Prisma schema reconciled for LiteLLM $(LITELLM_VERSION)."
+compose-config:
+	@test -f .env || cp .env.example .env
+	docker compose config --quiet
+
+docker-build:
+	docker build --build-arg LITELLM_VERSION=$(LITELLM_VERSION) -t litellm-gateway:$(LITELLM_VERSION) .
+
+up:
+	@test -f .env || { echo "Copy .env.example to .env and replace placeholders first."; exit 1; }
+	docker compose up -d --build
+
+down:
+	docker compose down
+
+logs:
+	docker compose logs -f litellm
+
+health:
+	$(PYTHON) scripts/smoke_test.py
+
+test-openai:
+	LITELLM_MODEL=openai-direct $(PYTHON) scripts/live_test.py
+
+test-gemini:
+	LITELLM_MODEL=gemini-direct $(PYTHON) scripts/live_test.py

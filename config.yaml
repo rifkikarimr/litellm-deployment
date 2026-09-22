@@ -1,151 +1,63 @@
-vertex_defaults: &vertex_defaults
-  vertex_project: os.environ/VERTEX_PROJECT_ID
-  vertex_location: os.environ/VERTEX_LOCATION
-
 model_list:
-  - model_name: elastic-agent
+  # Stable client-facing alias. Callers do not need provider-specific names.
+  - model_name: general-chat
     litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/claude-sonnet-5
+      model: os.environ/PRIMARY_MODEL
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      id: openai-primary
+      mode: chat
+      provider: openai
+
+  # Direct aliases make provider validation explicit without changing general-chat.
+  - model_name: openai-direct
+    litellm_params:
+      model: os.environ/PRIMARY_MODEL
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      id: openai-direct
+      mode: chat
+      provider: openai
+
+  - model_name: gemini-direct
+    litellm_params:
+      model: os.environ/FALLBACK_MODEL
+      api_key: os.environ/GEMINI_API_KEY
       additional_drop_params:
         - temperature
         - top_p
         - top_k
     model_info:
+      id: gemini-fallback
       mode: chat
-      provider: vertex_ai
-
-  - model_name: elastic-embedding
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/text-embedding-005
-    model_info:
-      mode: embedding
-      provider: vertex_ai
-
-  - model_name: model-a
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/gemini-2.5-pro
-      max_budget: 1
-      budget_duration: 1m
-    model_info:
-      provider: vertex_ai
-
-  - model_name: model-b
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/gemini-3.7-flash
-      max_budget: 0
-    model_info:
-      provider: vertex_ai
-
-  - model_name: gemini-2.5-pro
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/gemini-2.5-pro
-    model_info:
-      provider: vertex_ai
-
-  - model_name: gemini-2.5-flash
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/gemini-3.7-flash
-    model_info:
-      provider: vertex_ai
-
-  - model_name: gemini-2.5-flash-lite
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/gemini-2.5-flash-lite
-    model_info:
-      provider: vertex_ai
-
-  - model_name: gemini-3.1-pro
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/gemini-3.1-pro-preview
-    model_info:
-      provider: vertex_ai
-
-  - model_name: gemini-3-flash
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/gemini-3-flash-preview
-    model_info:
-      provider: vertex_ai
-
-  - model_name: gemini-3.1-flash-lite
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/gemini-3.1-flash-lite-preview
-    model_info:
-      provider: vertex_ai
-
-  - model_name: claude-sonnet-4-6
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/claude-sonnet-4-6
-    model_info:
-      provider: vertex_ai
-
-  - model_name: claude-opus-4-6
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/claude-opus-4-6
-    model_info:
-      provider: vertex_ai
-
-  - model_name: claude-opus-4-6-router-fallback
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/claude-opus-4-6
-    model_info:
-      id: claude-opus-4-6-fallback
-      provider: vertex_ai
-
-  - model_name: claude-opus-4-7
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/claude-opus-4-7
-    model_info:
-      provider: vertex_ai
-
-  - model_name: claude-opus-4-7-router-fallback
-    litellm_params:
-      <<: *vertex_defaults
-      model: vertex_ai/claude-opus-4-7
-    model_info:
-      id: claude-opus-4-7-fallback
-      provider: vertex_ai
-
+      provider: gemini
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
-
   database_url: os.environ/DATABASE_URL
+  database_connection_pool_limit: 10
+  allow_requests_on_db_unavailable: false
 
-  database_connection_pool_limit: 20
-  allow_requests_on_db_unavailable: True
+router_settings:
+  routing_strategy: simple-shuffle
+  timeout: 30
+  num_retries: 2
+  retry_after: 1
+  allowed_fails: 3
+  cooldown_time: 60
+  fallbacks:
+    - general-chat:
+        - gemini-direct
+  retry_policy:
+    AuthenticationErrorRetries: 0
+    BadRequestErrorRetries: 0
+    ContentPolicyViolationErrorRetries: 0
+    TimeoutErrorRetries: 2
+    RateLimitErrorRetries: 2
+    InternalServerErrorRetries: 2
 
 litellm_settings:
-  # Required env vars:
-  # - LANGFUSE_PUBLIC_KEY
-  # - LANGFUSE_SECRET_KEY
-  # Optional:
-  # - LANGFUSE_HOST or LANGFUSE_BASE_URL (default: https://cloud.langfuse.com)
-  # Elasticsearch AI Agent sends message history with tool_use/tool_result blocks
-  # but omits tools= on some turns (e.g. ESQL generation). Anthropic via LiteLLM
-  # requires a tools array in that case; modify_params injects a harmless dummy tool.
-  modify_params: true
-  num_retries: 2
-  allowed_fails: 3
-  cooldown_time: 30
-  fallbacks:
-    - claude-opus-4-7:
-        - claude-opus-4-7-fallback
-    - claude-opus-4-6:
-        - claude-opus-4-6-fallback
-  callbacks: ["custom_callbacks.proxy_handler_instance"]
-
-allow_dynamic_callback_disabling: false
+  callbacks:
+    - langfuse_otel
+  json_logs: true
+  set_verbose: false
