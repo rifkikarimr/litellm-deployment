@@ -3,7 +3,7 @@ SHELL := /bin/bash
 PYTHON ?= python3
 LITELLM_VERSION := $(shell cat .litellm-version)
 
-.PHONY: validate test test-fallback compile yaml-check scan-secrets scan-history-secrets compose-config docker-build up down restart ps logs test-openai test-gemini test-live-fallback health
+.PHONY: validate test test-fallback compile yaml-check scan-secrets scan-history-secrets compose-config docker-build up down start stop restart ps status logs test-openai test-gemini test-live-fallback health
 
 validate: compile yaml-check test scan-secrets scan-history-secrets compose-config
 
@@ -39,10 +39,16 @@ up:
 down:
 	docker compose down
 
+start: up
+
+stop: down
+
 restart: down up
 
 ps:
 	docker compose ps
+
+status: ps
 
 logs:
 	docker compose logs -f litellm
