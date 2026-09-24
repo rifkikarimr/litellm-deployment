@@ -2,10 +2,10 @@
 
 ## Repository controls
 
-- `.env`, private keys, service-account files, browser captures, and Python artifacts are ignored.
+- `.env`, private keys, credential files, browser captures, and Python artifacts are ignored.
 - `.env.example` contains placeholders only.
 - `config.yaml` reads every credential from the environment.
-- `scripts/scan_secrets.py` rejects common API-key formats, private-key material, private IPv4 addresses, service-account fields, and the removed corporate identifier.
+- `scripts/scan_secrets.py` rejects common API-key formats, private-key material, private IPv4 addresses, service-account fields, and stale corporate identifiers.
 - `make validate` scans both the current tree and every unique blob reachable from local Git refs.
 - CI checks out full history and runs the same scans on every pull request.
 
@@ -16,26 +16,30 @@ If a real secret was ever committed, deleting the current file is insufficient: 
 - Use LiteLLM virtual keys for applications and reserve the master key for administration.
 - Give each workload a separate key, model allowlist, budget, and rate limit.
 - Keep `LITELLM_SALT_KEY` stable and secret for persisted encrypted values.
-- Use a least-privilege database user and require TLS for non-local database traffic.
-- Do not expose PostgreSQL publicly. The local Compose service is network-only.
-- Restrict Cloud Run ingress or add an identity-aware control when the service is not intentionally public.
-- Send logs to access-controlled storage and avoid debug logging in production.
+- PostgreSQL is private to the Compose network and has no host port mapping.
+- The gateway binds to loopback by default.
+- Require a TLS reverse proxy, authentication, and host firewall rules before allowing network clients.
+- Send logs to access-controlled storage and avoid debug logging for real workloads.
+- Back up PostgreSQL with database-aware tools and test restoration.
 
-## Secret Manager on Cloud Run
+## Runtime secrets
 
-Store these values as separate Google Secret Manager secrets and map them to runtime environment variables:
+Provide these values through an untracked `.env` file or the secret-injection mechanism available on the Docker host:
 
 - `OPENAI_API_KEY`
 - `GEMINI_API_KEY`
 - `LITELLM_MASTER_KEY`
 - `LITELLM_SALT_KEY`
+- `POSTGRES_PASSWORD`
 - `DATABASE_URL`
 - `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` when observability is enabled
 
-Grant the Cloud Run service account access only to the required secret versions. Prefer rotation and version pinning procedures that allow rollback.
+Restrict `.env` file permissions and access to the Docker daemon. Never bake credentials into the image, commit them, pass them as build arguments, or publish them through screenshots and logs. Model identifiers and a non-secret Langfuse host may remain ordinary environment variables.
 
-Model identifiers and a non-secret Langfuse host can be ordinary environment variables. Never bake credentials into the image or pass them as Docker build arguments.
+## Host security boundary
+
+Anyone with control of the Docker daemon can normally inspect container configuration, mount data, and access the database volume. Treat Docker administrator access as privileged access to the gateway and its secrets. Keep the host patched, restrict interactive access, and avoid mounting the Docker socket into application containers.
 
 ## Data handling
 
-Prompts and outputs may contain sensitive information. Provider and observability data retention, regional processing, training defaults, and subprocessors are deployment decisions outside this repository. Complete a data-flow review before using production data.
+Prompts and outputs may contain sensitive information. Provider and observability data retention, regional processing, training defaults, and subprocessors remain operator decisions. Complete a data-flow review before using production data.

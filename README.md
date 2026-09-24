@@ -1,6 +1,6 @@
-# Resilient LiteLLM Gateway
+# Portable LiteLLM Gateway
 
-A production-oriented reference implementation of an OpenAI-compatible LLM gateway with an OpenAI primary route, a Google Gemini API fallback, PostgreSQL persistence, optional Langfuse/OpenTelemetry observability, Docker Compose for local use, and a Cloud Run-compatible container.
+A production-oriented, vendor-neutral reference implementation of an OpenAI-compatible LLM gateway. OpenAI is the primary provider, Google Gemini API is the fallback, and PostgreSQL persists gateway state. The complete runtime is packaged as a Docker Compose stack that can run on a laptop, workstation, on-premises server, or any VM with Docker Engine and the Compose plugin.
 
 It demonstrates provider abstraction and bounded failover without claiming universal high availability.
 
@@ -21,7 +21,8 @@ flowchart LR
 - LiteLLM master/virtual-key management and PostgreSQL-backed usage data
 - Secrets supplied only at runtime
 - Native Langfuse OpenTelemetry integration with no custom payload-mutating code
-- A small local stack and a portable Cloud Run container
+- One portable Docker Compose stack containing the gateway and database
+- No dependency on GCP, Cloud Run, Compute Engine, or a managed database
 - Offline configuration, fallback, syntax, Compose, and secret-safety checks
 
 ## Request flow
@@ -55,9 +56,10 @@ Replace every `replace-me` value in `.env`, then:
 ```bash
 docker compose up -d --build
 make health
+make ps
 ```
 
-The gateway listens on `http://127.0.0.1:4000` by default. PostgreSQL is not published to the host.
+The gateway listens on `http://127.0.0.1:4000` by default. PostgreSQL is reachable only inside the Compose network and its data survives container recreation in a named volume.
 
 Call the provider-agnostic alias:
 
@@ -79,6 +81,8 @@ curl --fail-with-body http://127.0.0.1:4000/v1/chat/completions \
 | `LITELLM_MASTER_KEY` | Gateway administrator credential |
 | `LITELLM_SALT_KEY` | Stable encryption salt for persisted LiteLLM data |
 | `DATABASE_URL` | PostgreSQL connection string |
+| `LITELLM_BIND_ADDRESS` | Host interface for the published gateway port; defaults to loopback |
+| `LITELLM_PORT` | Host port mapped to the gateway; defaults to `4000` |
 
 The public aliases are:
 
@@ -119,15 +123,17 @@ The repository contains placeholders only. Local services bind to loopback, Post
 
 See [security.md](docs/security.md).
 
-## Cloud Run deployment
+## Run anywhere with Docker Compose
 
-The image binds to `0.0.0.0` and expands Cloud Run's runtime `PORT`. Use a managed PostgreSQL endpoint reachable from the service, store all credentials in Google Secret Manager, and deploy the built image with secret-to-environment mappings. No cloud resources are created by this repository.
+The same `compose.yaml` is the supported deployment unit for local development and a single Docker host. A target only needs Docker Engine, Docker Compose v2, outbound HTTPS access to the selected model providers, and durable storage for the named PostgreSQL volume.
 
-See [operations.md](docs/operations.md).
+Keep `LITELLM_BIND_ADDRESS=127.0.0.1` for machine-local access. For access from another machine, put a TLS-enabled reverse proxy in front of the gateway and intentionally change the bind address after configuring firewall rules. No cloud provider, managed database, service account, or provider-specific infrastructure is required.
+
+See [architecture.md](docs/architecture.md) and [operations.md](docs/operations.md).
 
 ## Cost considerations
 
-The main cost drivers are provider tokens, Cloud Run compute, PostgreSQL, logging, and optional Langfuse storage. Apply virtual-key budgets and rate limits, constrain output tokens, choose cost-appropriate models, and test whether fallback traffic changes quality or cost.
+The main cost drivers are provider tokens, the Docker host, storage and backups for PostgreSQL, logging, and optional Langfuse storage. Apply virtual-key budgets and rate limits, constrain output tokens, choose cost-appropriate models, and test whether fallback traffic changes quality or cost.
 
 See [cost.md](docs/cost.md).
 
@@ -137,7 +143,8 @@ See [cost.md](docs/cost.md).
 - LiteLLM's generic fallback classification is upstream behavior. The retry policy is explicitly error-specific, but operators must validate which real provider errors enter fallback for the pinned version.
 - PostgreSQL is a single local container in Compose, not a highly available database.
 - Langfuse is an external integration, not part of the core local stack.
-- No paid-provider or deployed Cloud Run result is claimed by the repository's offline tests.
+- The bundled PostgreSQL container is designed for a single Docker host, not multi-host high availability.
+- No paid-provider or live deployment result is claimed by the repository's offline tests.
 - A repository license has not yet been selected.
 
 ## Portfolio evidence
