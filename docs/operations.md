@@ -31,6 +31,17 @@ make logs
 
 `make down` removes containers and the Compose network but preserves the `postgres-data` volume. Do not remove that volume unless permanent database deletion is intended and a verified backup exists.
 
+## Changing the PostgreSQL password
+
+`POSTGRES_PASSWORD` initializes the database role only when PostgreSQL creates an empty data directory. Editing `.env` later does not change the password stored inside an existing `postgres-data` volume. If `POSTGRES_PASSWORD` and the password inside `DATABASE_URL` are intentionally rotated, synchronize the existing role with:
+
+```bash
+make db-sync-password PYTHON=.venv/bin/python
+make health PYTHON=.venv/bin/python
+```
+
+The synchronization command validates the `.env` relationship, stops LiteLLM, creates a permission-restricted PostgreSQL backup in the operating system's temporary directory, updates only the Compose database role password, and starts LiteLLM again. It does not delete or recreate the volume. A Prisma `P1000` error after changing `.env` is an authentication mismatch, not a schema migration failure.
+
 ## Run on another Docker host
 
 1. Clone the repository on the target host.

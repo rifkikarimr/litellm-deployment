@@ -61,6 +61,8 @@ make ps
 
 The gateway listens on `http://127.0.0.1:4000` by default. PostgreSQL is reachable only inside the Compose network and its data survives container recreation in a named volume.
 
+If you rotate `POSTGRES_PASSWORD` after the volume has been initialized, also update the password in `DATABASE_URL`, then run `make db-sync-password PYTHON=.venv/bin/python`. See [operations.md](docs/operations.md#changing-the-postgresql-password).
+
 Call the provider-agnostic alias:
 
 ```bash
