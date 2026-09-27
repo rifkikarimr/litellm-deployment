@@ -1,17 +1,26 @@
-cat >> .gitignore <<'EOF'
-# secrets & env
+# Secrets and local environment
 .env
-*.env
 .env.*
+!.env.example
 *.key
 *.pem
+*.p12
+*service-account*.json
 
-# local artifacts
+# Python and test artifacts
 __pycache__/
-*.pyc
-.DS_Store
+*.py[cod]
+.pytest_cache/
+.coverage
+.venv/
+.venv-*/
 
-# build output
-dist/
+# Browser and editor artifacts
+.playwright-cli/
+.DS_Store
+.idea/
+.vscode/
+
+# Build output
 build/
-EOF
+dist/

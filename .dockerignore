@@ -1,13 +1,12 @@
-.gcloudignore
 .git
-.gitignore
+.github
 .env
 .env.*
 !.env.example
-.github
 .playwright-cli
 __pycache__
 *.py[cod]
 .venv*
 tests
 docs
+README.md
