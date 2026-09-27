@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""Opt-in paid test: inject an OpenAI 500 and make one real Gemini fallback call."""
+"""Opt-in paid test: inject a Gemini 500 and make one real OpenAI fallback call."""
 
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import os
+from pathlib import Path
 import threading
 
 import litellm
+from dotenv import load_dotenv
 from litellm import Router
+
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 
 class ForcedFailureHandler(BaseHTTPRequestHandler):
@@ -29,18 +34,18 @@ def main() -> int:
     if os.getenv("RUN_PAID_PROVIDER_TESTS") != "1":
         print("Set RUN_PAID_PROVIDER_TESTS=1 to confirm this paid provider test.")
         return 2
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
-        print("Set GEMINI_API_KEY before running this opt-in paid test.")
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if not openai_key:
+        print("Set OPENAI_API_KEY before running this opt-in paid test.")
         return 2
-    if gemini_key == "replace-me":
-        print("Replace the GEMINI_API_KEY placeholder before running this test.")
+    if openai_key == "replace-me":
+        print("Replace the OPENAI_API_KEY placeholder before running this test.")
         return 2
 
     litellm.suppress_debug_info = True
 
-    primary_model = os.getenv("PRIMARY_MODEL", "openai/gpt-5.6-luna")
-    fallback_model = os.getenv("FALLBACK_MODEL", "gemini/gemini-3.7-flash")
+    primary_model = os.getenv("PRIMARY_MODEL", "gemini/gemini-3.7-flash")
+    fallback_model = os.getenv("FALLBACK_MODEL", "openai/gpt-5.6-luna")
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), ForcedFailureHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -57,16 +62,18 @@ def main() -> int:
                     },
                 },
                 {
-                    "model_name": "gemini-direct",
+                    "model_name": "openai-direct",
                     "litellm_params": {
                         "model": fallback_model,
-                        "api_key": gemini_key,
-                        "additional_drop_params": ["temperature", "top_p", "top_k"],
+                        "api_key": openai_key,
                     },
                 },
             ],
-            fallbacks=[{"general-chat": ["gemini-direct"]}],
-            num_retries=0,
+            fallbacks=[{"general-chat": ["openai-direct"]}],
+            num_retries=2,
+            retry_after=1,
+            allowed_fails=3,
+            cooldown_time=60,
             timeout=30,
         )
         try:
@@ -88,6 +95,9 @@ def main() -> int:
         return 1
 
     print("primary_failure_injected=true")
+    print(f"primary_attempts={ForcedFailureHandler.attempts}")
+    print("primary_failure_class=HTTP_500_InternalServerError")
+    print("fallback_provider=openai")
     print("fallback_completed=true")
     print(f"response_model={getattr(response, 'model', 'not-returned')}")
     print(f"content={response.choices[0].message.content}")

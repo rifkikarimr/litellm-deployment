@@ -4,7 +4,7 @@
 
 The gateway writes structured JSON logs to stdout/stderr for container-native collection. PostgreSQL-backed LiteLLM data provides request usage, virtual-key attribution, budgets, model groups, tokens, and cost estimates where LiteLLM has current pricing metadata.
 
-The `model_info.id` values `openai-primary`, `openai-direct`, and `gemini-fallback` make the selected route visible in response headers and logs. Recent LiteLLM spend logs also record original model group and attempted fallback metadata; verify these fields against the pinned release before using them for alerts.
+The `model_info.id` values `gemini-primary`, `gemini-direct`, and `openai-direct` make the selected route visible in response headers and logs. Recent LiteLLM spend logs also record original model group and attempted fallback metadata; verify these fields against the pinned release before using them for alerts.
 
 ## Langfuse
 
@@ -37,7 +37,7 @@ Capture the LiteLLM call ID from response headers, then correlate it with JSON l
 
 ## Privacy
 
-LiteLLM OTel v2 defaults to metadata-only spans and does not capture prompts or responses. Keep that default unless a reviewed use case requires content. If content capture is enabled, LLM observability can transmit prompts, outputs, user identifiers, tool arguments, and metadata. Before enabling it:
+LiteLLM 1.100.1 resolves `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=no_content` as metadata-only and also uses `no_content` as its configuration default. Keep that setting unless a reviewed use case requires content. If content capture is enabled, LLM observability can transmit prompts, outputs, user identifiers, tool arguments, and metadata. Before enabling it:
 
 - determine whether prompt/response capture is permitted;
 - redact or avoid personal, regulated, and secret data;

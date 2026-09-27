@@ -3,16 +3,20 @@ model_list:
   - model_name: general-chat
     litellm_params:
       model: os.environ/PRIMARY_MODEL
-      api_key: os.environ/OPENAI_API_KEY
+      api_key: os.environ/GEMINI_API_KEY
+      additional_drop_params:
+        - temperature
+        - top_p
+        - top_k
     model_info:
-      id: openai-primary
+      id: gemini-primary
       mode: chat
-      provider: openai
+      provider: gemini
 
   # Direct aliases make provider validation explicit without changing general-chat.
   - model_name: openai-direct
     litellm_params:
-      model: os.environ/PRIMARY_MODEL
+      model: os.environ/FALLBACK_MODEL
       api_key: os.environ/OPENAI_API_KEY
     model_info:
       id: openai-direct
@@ -21,14 +25,14 @@ model_list:
 
   - model_name: gemini-direct
     litellm_params:
-      model: os.environ/FALLBACK_MODEL
+      model: os.environ/PRIMARY_MODEL
       api_key: os.environ/GEMINI_API_KEY
       additional_drop_params:
         - temperature
         - top_p
         - top_k
     model_info:
-      id: gemini-fallback
+      id: gemini-direct
       mode: chat
       provider: gemini
 
@@ -47,7 +51,7 @@ router_settings:
   cooldown_time: 60
   fallbacks:
     - general-chat:
-        - gemini-direct
+        - openai-direct
   retry_policy:
     AuthenticationErrorRetries: 0
     BadRequestErrorRetries: 0

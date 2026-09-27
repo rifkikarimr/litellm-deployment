@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run an explicitly requested paid-provider integration test through LiteLLM."""
+"""Run one explicitly approved streaming request through the local gateway."""
 
 import json
 import os
@@ -17,20 +17,15 @@ load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 BASE_URL = os.getenv("LITELLM_BASE_URL", "http://127.0.0.1:4000").rstrip("/")
 API_KEY = os.getenv("LITELLM_API_KEY") or os.getenv("LITELLM_MASTER_KEY")
 MODEL = os.getenv("LITELLM_MODEL", "general-chat")
-EXPECTED_TEXT = os.getenv("LITELLM_EXPECTED_TEXT", "ready")
-MAX_TOKENS = int(os.getenv("LITELLM_MAX_TOKENS", "16"))
-REASONING_EFFORT = os.getenv("LITELLM_REASONING_EFFORT", "low")
+EXPECTED_TEXT = os.getenv("LITELLM_EXPECTED_TEXT", "STREAM_OK")
 
 
 def main() -> int:
     if os.getenv("RUN_PAID_PROVIDER_TESTS") != "1":
-        print("Set RUN_PAID_PROVIDER_TESTS=1 to confirm this paid provider test.", file=sys.stderr)
+        print("Set RUN_PAID_PROVIDER_TESTS=1 to confirm this paid provider test.")
         return 2
-    if not API_KEY:
-        print("Set LITELLM_API_KEY or LITELLM_MASTER_KEY.", file=sys.stderr)
-        return 2
-    if API_KEY == "replace-me":
-        print("Replace the placeholder LiteLLM key before running this test.", file=sys.stderr)
+    if not API_KEY or API_KEY == "replace-me":
+        print("Set a non-placeholder LITELLM_API_KEY or LITELLM_MASTER_KEY.")
         return 2
 
     payload = {
@@ -38,8 +33,9 @@ def main() -> int:
         "messages": [
             {"role": "user", "content": f"Reply with exactly: {EXPECTED_TEXT}"}
         ],
-        "max_tokens": MAX_TOKENS,
-        "reasoning_effort": REASONING_EFFORT,
+        "max_tokens": 32,
+        "reasoning_effort": "low",
+        "stream": True,
     }
     request = urllib.request.Request(
         f"{BASE_URL}/v1/chat/completions",
@@ -50,27 +46,36 @@ def main() -> int:
         },
         method="POST",
     )
+
     started = time.monotonic()
+    chunks = 0
+    content_parts: list[str] = []
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
-            body = json.load(response)
+            model_id = response.headers.get("x-litellm-model-id", "not-returned")
+            for raw_line in response:
+                line = raw_line.decode("utf-8").strip()
+                if not line.startswith("data: ") or line == "data: [DONE]":
+                    continue
+                event = json.loads(line.removeprefix("data: "))
+                chunks += 1
+                delta = event.get("choices", [{}])[0].get("delta", {})
+                if delta.get("content"):
+                    content_parts.append(delta["content"])
             elapsed_ms = round((time.monotonic() - started) * 1000)
-            usage = body.get("usage") or {}
+            content = "".join(content_parts).strip()
             print(f"status={response.status}")
             print(f"requested_alias={MODEL}")
-            print(f"model_id={response.headers.get('x-litellm-model-id', 'not-returned')}")
-            print(f"response_model={body.get('model', 'not-returned')}")
+            print(f"model_id={model_id}")
+            print(f"chunks={chunks}")
             print(f"latency_ms={elapsed_ms}")
-            print(f"prompt_tokens={usage.get('prompt_tokens', 'not-returned')}")
-            print(f"completion_tokens={usage.get('completion_tokens', 'not-returned')}")
-            content = body["choices"][0]["message"].get("content") or ""
             print(f"content={content if content else '<empty>'}")
-            return 0 if content.strip() == EXPECTED_TEXT else 1
+            return 0 if content == EXPECTED_TEXT and chunks > 0 else 1
     except urllib.error.HTTPError as exc:
-        print(f"provider test failed: HTTP {exc.code}", file=sys.stderr)
+        print(f"streaming test failed: HTTP {exc.code}", file=sys.stderr)
         return 1
     except (OSError, KeyError, ValueError) as exc:
-        print(f"provider test failed: {exc}", file=sys.stderr)
+        print(f"streaming test failed: {type(exc).__name__}", file=sys.stderr)
         return 1
 
 

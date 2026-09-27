@@ -5,8 +5,8 @@
 ```mermaid
 flowchart TB
     Client[OpenAI-compatible client] -->|HTTP on configured host port| LiteLLM[LiteLLM Proxy]
-    LiteLLM -->|general-chat primary| OpenAI[OpenAI API]
-    LiteLLM -. eligible provider failure .-> Gemini[Google Gemini API]
+    LiteLLM -->|general-chat primary| Gemini[Google Gemini API]
+    LiteLLM -. eligible provider failure .-> OpenAI[OpenAI API]
     LiteLLM -->|keys, budgets, usage| PostgreSQL[(PostgreSQL)]
     LiteLLM -. optional OTLP .-> Langfuse[Langfuse endpoint]
 
@@ -42,8 +42,8 @@ The repository deliberately does not include GCP, AWS, Azure, Kubernetes, Terraf
 | --- | --- |
 | Client | Sends OpenAI-compatible requests using `general-chat` |
 | LiteLLM | Authenticates, routes, retries, falls back, meters, and logs |
-| OpenAI | Primary inference provider |
-| Gemini API | Cross-provider fallback and direct validation route |
+| Gemini API | Primary inference provider and direct validation route |
+| OpenAI | Cross-provider fallback and direct validation route |
 | PostgreSQL | Virtual keys, teams, budgets, configuration, and usage persistence |
 | `postgres-data` | Durable single-host database storage |
 | Langfuse | Optional trace and generation analysis through OTLP |

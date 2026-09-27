@@ -74,9 +74,10 @@ RUN_PAID_PROVIDER_TESTS=1 make test-openai
 RUN_PAID_PROVIDER_TESTS=1 make test-gemini
 RUN_PAID_PROVIDER_TESTS=1 LITELLM_MODEL=general-chat python3 scripts/live_test.py
 RUN_PAID_PROVIDER_TESTS=1 make test-live-fallback
+RUN_PAID_PROVIDER_TESTS=1 make test-stream
 ```
 
-`test-live-fallback` injects a local HTTP 500 for the primary and makes one real Gemini request. It proves Router fallback behavior but not the full proxy path.
+`test-live-fallback` injects a local HTTP 500 for the Gemini primary, exercises two bounded retries, and makes one real OpenAI fallback request. It proves Router fallback behavior but not the full proxy path.
 
 ## Database backup and upgrades
 

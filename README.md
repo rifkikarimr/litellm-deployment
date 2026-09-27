@@ -1,14 +1,14 @@
 # Portable LiteLLM Gateway
 
-A production-oriented, vendor-neutral reference implementation of an OpenAI-compatible LLM gateway. OpenAI is the primary provider, Google Gemini API is the fallback, and PostgreSQL persists gateway state. The complete runtime is packaged as a Docker Compose stack that can run on a laptop, workstation, on-premises server, or any VM with Docker Engine and the Compose plugin.
+A production-oriented, vendor-neutral reference implementation of an OpenAI-compatible LLM gateway. Google Gemini API is the primary provider, OpenAI is the fallback, and PostgreSQL persists gateway state. The complete runtime is packaged as a Docker Compose stack that can run on a laptop, workstation, on-premises server, or any VM with Docker Engine and the Compose plugin.
 
 It demonstrates provider abstraction and bounded failover without claiming universal high availability.
 
 ```mermaid
 flowchart LR
     Client[OpenAI-compatible client] -->|general-chat| Gateway[LiteLLM gateway]
-    Gateway -->|primary| OpenAI[OpenAI API]
-    Gateway -. retryable failure .-> Gemini[Gemini API fallback]
+    Gateway -->|primary| Gemini[Gemini API]
+    Gateway -. retryable failure .-> OpenAI[OpenAI API fallback]
     Gateway --> Postgres[(PostgreSQL)]
     Gateway -. optional OTLP .-> Langfuse[Langfuse Cloud or self-hosted]
 ```
@@ -16,7 +16,7 @@ flowchart LR
 ## What this project demonstrates
 
 - A stable `general-chat` client alias hiding provider-specific model names
-- OpenAI as primary and the direct Gemini API as cross-provider fallback
+- Gemini as primary and OpenAI as cross-provider fallback
 - Error-specific, bounded retries plus cooldown handling
 - LiteLLM master/virtual-key management and PostgreSQL-backed usage data
 - Secrets supplied only at runtime
@@ -27,7 +27,7 @@ flowchart LR
 
 ## Request flow
 
-`general-chat` first calls `PRIMARY_MODEL` through OpenAI. A LiteLLM-classified provider failure can enter the configured fallback chain after at most two retries. `gemini-direct` then calls `FALLBACK_MODEL` through the Gemini API. Authentication, malformed-request, and content-policy errors have zero same-provider retries.
+`general-chat` first calls `PRIMARY_MODEL` through Gemini. A LiteLLM-classified provider failure can enter the configured fallback chain after at most two retries. `openai-direct` then calls `FALLBACK_MODEL` through OpenAI. Authentication, malformed-request, and content-policy errors have zero same-provider retries.
 
 The Gemini deployment explicitly drops three sampling fields deprecated by current Gemini models; no global parameter-dropping switch is enabled.
 
@@ -78,8 +78,8 @@ curl --fail-with-body http://127.0.0.1:4000/v1/chat/completions \
 | --- | --- |
 | `OPENAI_API_KEY` | OpenAI provider credential |
 | `GEMINI_API_KEY` | Gemini API credential |
-| `PRIMARY_MODEL` | Provider-qualified OpenAI model |
-| `FALLBACK_MODEL` | Provider-qualified Gemini model |
+| `PRIMARY_MODEL` | Provider-qualified Gemini model |
+| `FALLBACK_MODEL` | Provider-qualified OpenAI model |
 | `LITELLM_MASTER_KEY` | Gateway administrator credential |
 | `LITELLM_SALT_KEY` | Stable encryption salt for persisted LiteLLM data |
 | `DATABASE_URL` | PostgreSQL connection string |
@@ -88,9 +88,9 @@ curl --fail-with-body http://127.0.0.1:4000/v1/chat/completions \
 
 The public aliases are:
 
-- `general-chat`: OpenAI primary with Gemini fallback
-- `openai-direct`: direct primary-provider validation
-- `gemini-direct`: direct fallback-provider validation
+- `general-chat`: Gemini primary with OpenAI fallback
+- `gemini-direct`: direct primary-provider validation
+- `openai-direct`: direct fallback-provider validation
 
 ## Validation and testing
 
@@ -109,6 +109,7 @@ The fallback unit test uses LiteLLM Router mock responses and makes no network r
 RUN_PAID_PROVIDER_TESTS=1 make test-openai
 RUN_PAID_PROVIDER_TESTS=1 make test-gemini
 RUN_PAID_PROVIDER_TESTS=1 make test-live-fallback
+RUN_PAID_PROVIDER_TESTS=1 make test-stream
 ```
 
 The explicit acknowledgement prevents credentials already present in the shell from triggering an accidental provider request. Direct and controlled Router-level checks are documented in [operations.md](docs/operations.md); the disposable end-to-end proxy procedure is documented in [resilience.md](docs/resilience.md). Run either only in a non-production environment.
@@ -146,7 +147,7 @@ See [cost.md](docs/cost.md).
 - PostgreSQL is a single local container in Compose, not a highly available database.
 - Langfuse is an external integration, not part of the core local stack.
 - The bundled PostgreSQL container is designed for a single Docker host, not multi-host high availability.
-- No paid-provider or live deployment result is claimed by the repository's offline tests.
+- Live-provider evidence is a point-in-time result and does not replace ongoing availability, quota, or compatibility monitoring.
 - A repository license has not yet been selected.
 
 ## Portfolio evidence

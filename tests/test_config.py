@@ -24,7 +24,7 @@ class ConfigTests(unittest.TestCase):
     def test_provider_credentials_are_environment_references(self) -> None:
         self.assertEqual(
             self.models["general-chat"]["litellm_params"]["api_key"],
-            "os.environ/OPENAI_API_KEY",
+            "os.environ/GEMINI_API_KEY",
         )
         self.assertEqual(
             self.models["gemini-direct"]["litellm_params"]["api_key"],
@@ -43,13 +43,37 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(policy["ContentPolicyViolationErrorRetries"], 0)
 
     def test_only_gemini_drops_deprecated_sampling_fields(self) -> None:
-        self.assertNotIn(
-            "additional_drop_params",
-            self.models["general-chat"]["litellm_params"],
+        self.assertEqual(
+            self.models["general-chat"]["litellm_params"]["additional_drop_params"],
+            ["temperature", "top_p", "top_k"],
         )
         self.assertEqual(
             self.models["gemini-direct"]["litellm_params"]["additional_drop_params"],
             ["temperature", "top_p", "top_k"],
+        )
+        self.assertNotIn(
+            "additional_drop_params",
+            self.models["openai-direct"]["litellm_params"],
+        )
+
+    def test_model_environment_mapping_matches_provider_roles(self) -> None:
+        self.assertEqual(
+            self.models["general-chat"]["litellm_params"]["model"],
+            "os.environ/PRIMARY_MODEL",
+        )
+        self.assertEqual(
+            self.models["gemini-direct"]["litellm_params"]["model"],
+            "os.environ/PRIMARY_MODEL",
+        )
+        self.assertEqual(
+            self.models["openai-direct"]["litellm_params"]["model"],
+            "os.environ/FALLBACK_MODEL",
+        )
+
+    def test_general_chat_falls_back_to_openai(self) -> None:
+        self.assertEqual(
+            self.config["router_settings"]["fallbacks"],
+            [{"general-chat": ["openai-direct"]}],
         )
 
     def test_example_models_exist_in_pinned_litellm_registry(self) -> None:

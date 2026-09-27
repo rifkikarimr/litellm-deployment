@@ -3,7 +3,7 @@ SHELL := /bin/bash
 PYTHON ?= python3
 LITELLM_VERSION := $(shell cat .litellm-version)
 
-.PHONY: validate test test-fallback compile yaml-check scan-secrets scan-history-secrets compose-config docker-build up down start stop restart ps status logs db-sync-password test-openai test-gemini test-live-fallback health
+.PHONY: validate test test-fallback compile yaml-check scan-secrets scan-history-secrets compose-config docker-build up down start stop restart ps status logs db-sync-password test-openai test-gemini test-live-fallback test-stream health
 
 validate: compile yaml-check test scan-secrets scan-history-secrets compose-config
 
@@ -67,3 +67,6 @@ test-gemini:
 
 test-live-fallback:
 	$(PYTHON) scripts/live_fallback_test.py
+
+test-stream:
+	$(PYTHON) scripts/live_stream_test.py

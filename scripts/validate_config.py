@@ -32,19 +32,24 @@ def main() -> int:
         fail(f"expected aliases {sorted(required_aliases)}, got {sorted(by_name)}")
 
     primary = by_name["general-chat"]["litellm_params"]
-    fallback = by_name["gemini-direct"]["litellm_params"]
+    openai_direct = by_name["openai-direct"]["litellm_params"]
+    gemini_direct = by_name["gemini-direct"]["litellm_params"]
     if primary.get("model") != "os.environ/PRIMARY_MODEL":
         fail("general-chat must read PRIMARY_MODEL from the environment")
-    if primary.get("api_key") != "os.environ/OPENAI_API_KEY":
-        fail("general-chat must read OPENAI_API_KEY from the environment")
-    if fallback.get("model") != "os.environ/FALLBACK_MODEL":
-        fail("gemini-direct must read FALLBACK_MODEL from the environment")
-    if fallback.get("api_key") != "os.environ/GEMINI_API_KEY":
+    if primary.get("api_key") != "os.environ/GEMINI_API_KEY":
+        fail("general-chat must read GEMINI_API_KEY from the environment")
+    if gemini_direct.get("model") != "os.environ/PRIMARY_MODEL":
+        fail("gemini-direct must read PRIMARY_MODEL from the environment")
+    if gemini_direct.get("api_key") != "os.environ/GEMINI_API_KEY":
         fail("gemini-direct must read GEMINI_API_KEY from the environment")
+    if openai_direct.get("model") != "os.environ/FALLBACK_MODEL":
+        fail("openai-direct must read FALLBACK_MODEL from the environment")
+    if openai_direct.get("api_key") != "os.environ/OPENAI_API_KEY":
+        fail("openai-direct must read OPENAI_API_KEY from the environment")
 
     router = config.get("router_settings", {})
-    if router.get("fallbacks") != [{"general-chat": ["gemini-direct"]}]:
-        fail("general-chat must fall back only to gemini-direct")
+    if router.get("fallbacks") != [{"general-chat": ["openai-direct"]}]:
+        fail("general-chat must fall back only to openai-direct")
     if not 0 <= int(router.get("num_retries", -1)) <= 3:
         fail("num_retries must remain bounded between 0 and 3")
 
